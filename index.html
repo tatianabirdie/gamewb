@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Предсказание от ВБ Банка</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            /* Основные цвета */
+            --primary: #8A2BE2; /* Фиолетовый */
+            --accent: #FF00FF; /* Фуксия */
+            --gold: #FFD700; /* Золотой */
+            --silver: #C0C0C0; /* Серебряный */
+            --money-green: #4CAF50; /* Денежный зеленый */
+            --light-bg: #FFFFFF;
+            --dark-bg: #121212;
+            --light-text: #FFFFFF;
+            --dark-text: #333333;
+            --border-radius: 16px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            touch-action: manipulation;
+        }
+
+        body {
+            background: var(--light-bg);
+            color: var(--dark-text);
+            height: 100vh;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        body.dark-theme {
+            background: var(--dark-bg);
+            color: var(--light-text);
+        }
+
+        .container {
+            max-width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+        }
+
+        /* Шапка с брендингом */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            margin-bottom: 16px;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .brand {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .header-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .financing-text {
+            font-size: 12px;
+            color: var(--primary);
+            font-weight: 600;
+            text-align: right;
+            max-width: 200px;
+        }
+
+        .get-button {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            border-radius: 24px;
+            padding: 10px 20px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: var(--transition);
+            box-shadow: 0 4px 12px rgba(138, 43, 226, 0.3);
+        }
+
+        .get-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(138, 43, 226, 0.4);
+        }
+
+        /* Экран начала */
+        #start-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            flex: 1;
+            padding: 20px;
+        }
+
+        .title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            line-height: 1.2;
+        }
+
+        .instructions {
+            margin-bottom: 32px;
+            font-size: 16px;
+            line-height: 1.5;
+            max-width: 400px;
+        }
+
+        .highlight {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .gold-highlight {
+            color: var(--gold);
+            font-weight: 700;
+        }
+
+        .green-highlight {
+            color: var(--money-green);
+            font-weight: 700;
+        }
+
+        .elements-preview {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .element-preview {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .preview-coin {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #FFD700, #D4AF37);
+            margin-bottom: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8B4513;
+            font-weight: bold;
+            font-size: 24px;
+        }
+
+        .preview-bill {
+            width: 80px;
+            height: 40px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #8bc34a, #4CAF50);
+            margin-bottom: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .preview-gold-bill {
+            width: 85px;
+            height: 45px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            margin-bottom: 8px;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8B4513;
+            font-weight: bold;
+            font-size: 24px;
+            animation: pulse 1.5s infinite;
+        }
+
+        .start-button {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 16px 40px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 6px 16px rgba(138, 43, 226, 0.4);
+        }
+
+        .start-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(138, 43, 226, 0.5);
+        }
+
+        /* Игровой экран */
+        #game-screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            margin-bottom: 12px;
+        }
+
+        .timer, .score {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .game-area {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            border-radius: var(--border-radius);
+            background: rgba(138, 43, 226, 0.05);
+            border: 2px dashed rgba(138, 43, 226, 0.2);
+        }
+
+        .element {
+            position: absolute;
+            cursor: pointer;
+            transition: transform 0.2s ease, opacity 0.5s ease;
+            animation: appear 0.3s ease-out;
+        }
+
+        .element:hover {
+            transform: scale(1.1);
+        }
+
+        .element:active {
+            transform: scale(0.9);
+        }
+
+        .coin {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #FFD700, #D4AF37);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8B4513;
+            font-weight: bold;
+            font-size: 24px;
+        }
+
+        .silver-coin {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #C0C0C0, #A9A9A9);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            font-weight: bold;
+            font-size: 24px;
+        }
+
+        .bill {
+            width: 80px;
+            height: 40px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #8bc34a, #4CAF50);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .gold-bill {
+            width: 85px;
+            height: 45px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8B4513;
+            font-weight: bold;
+            font-size: 24px;
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Экран результатов */
+        #result-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            flex: 1;
+            padding: 20px;
+        }
+
+        .result-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .final-score {
+            font-size: 72px;
+            font-weight: 900;
+            color: var(--accent);
+            margin: 20px 0;
+            text-shadow: 0 4px 12px rgba(138, 43, 226, 0.3);
+        }
+
+        .prediction {
+            background: rgba(138, 43, 226, 0.1);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin: 20px 0;
+            max-width: 90%;
+            font-size: 18px;
+            font-weight: 600;
+            border-left: 4px solid var(--accent);
+        }
+
+        .buttons-container {
+            display: flex;
+            gap: 16px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .action-button {
+            padding: 14px 28px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+        }
+
+        .play-again {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            box-shadow: 0 4px 12px rgba(138, 43, 226, 0.3);
+        }
+
+        .share {
+            background: rgba(138, 43, 226, 0.1);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .action-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(138, 43, 226, 0.4);
+        }
+
+        /* Анимации */
+        @keyframes appear {
+            from {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes disappear {
+            to {
+                transform: scale(0);
+                opacity: 0;
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7);
+            }
+            70% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(255, 215, 0, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+            }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Адаптивность */
+        @media (max-width: 480px) {
+            .title {
+                font-size: 28px;
+            }
+            
+            .financing-text {
+                display: none;
+            }
+            
+            .final-score {
+                font-size: 60px;
+            }
+            
+            .element {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .coin, .silver-coin {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+            
+            .bill {
+                width: 70px;
+                height: 35px;
+                font-size: 18px;
+            }
+            
+            .gold-bill {
+                width: 75px;
+                height: 40px;
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Шапка с брендингом -->
+        <header>
+            <div class="brand">Предсказание от ВБ Банка</div>
+            <div class="header-right">
+                <div class="financing-text">Финансирование от ВБ Финанс: узнайте, какая сумма доступна вам</div>
+                <a href="https://loans.wb.ru/" class="get-button" target="_blank">Получить</a>
+            </div>
+        </header>
+
+        <!-- Экран начала игры -->
+        <div id="start-screen">
+            <h1 class="title">Поймай удачу!</h1>
+            <p class="instructions">
+                Кликай на появляющиеся деньги, чтобы заработать очки.<br>
+                <span class="gold-highlight">Золотые монетки:</span> +10 очков<br>
+                <span class="green-highlight">Банкноты:</span> +10 очков<br>
+                <span class="gold-highlight">Золотые банкноты:</span> +50 очков + предсказание<br>
+                У тебя всего <span class="highlight">30 секунд</span>!
+            </p>
+            
+            <div class="elements-preview">
+                <div class="element-preview">
+                    <div class="preview-coin">₽</div>
+                    <div>+10 очков</div>
+                </div>
+                <div class="element-preview">
+                    <div class="preview-bill">₽</div>
+                    <div>+10 очков</div>
+                </div>
+                <div class="element-preview">
+                    <div class="preview-gold-bill">₽</div>
+                    <div>+50 очков</div>
+                </div>
+            </div>
+            
+            <button class="start-button" id="start-button">Начать игру</button>
+        </div>
+
+        <!-- Игровой экран -->
+        <div id="game-screen">
+            <div class="game-header">
+                <div class="timer">Время: <span id="timer">30</span>с</div>
+                <div class="score">Очки: <span id="score">0</span></div>
+            </div>
+            <div class="game-area" id="game-area"></div>
+        </div>
+
+        <!-- Экран результатов -->
+        <div id="result-screen">
+            <h2 class="result-title">Игра завершена!</h2>
+            <div class="final-score" id="final-score">0</div>
+            <p>Твой результат</p>
+            
+            <div class="prediction" id="prediction">
+                Здесь будет ваше предсказание
+            </div>
+            
+            <div class="buttons-container">
+                <button class="action-button play-again" id="play-again">Играть снова</button>
+                <button class="action-button share" id="share-button">Поделиться</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        
+        // Элементы DOM
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const startButton = document.getElementById('start-button');
+        const playAgainButton = document.getElementById('play-again');
+        const shareButton = document.getElementById('share-button');
+        const timerElement = document.getElementById('timer');
+        const scoreElement = document.getElementById('score');
+        const finalScoreElement = document.getElementById('final-score');
+        const predictionElement = document.getElementById('prediction');
+        const gameArea = document.getElementById('game-area');
+        const body = document.body;
+        
+        // Переменные игры
+        let gameTimer;
+        let gameInterval;
+        let timeLeft = 30;
+        let score = 0;
+        let goldElementsCount = 0;
+        let spawnInterval = 1000; // начальный интервал (1 элемент в секунду)
+        
+        // Предсказания
+        const predictions = [
+            "Твоя карточка сегодня поднимется в топ!",
+            "В этом месяце тебя ждет рекордное количество заказов!",
+            "Твои товары будут в рекомендациях у тысячи покупателей!",
+            "Ты получишь премию 'Продавец месяца'!",
+            "Твой рейтинг вырастет до 5 звёзд!",
+            "Ты получишь выгодное предложение от ВБ Банка!",
+            "Твои продажи вырастут на 50% в этом квартале!",
+            "Тебя ждет приятный бонус от маркетплейса!",
+            "Ты найдешь идеального поставщика!",
+            "Твой бизнес получит новое выгодное партнерство!"
+        ];
+        
+        // Применение темы Telegram
+        function applyTheme() {
+            if (tg.colorScheme === 'dark') {
+                body.classList.add('dark-theme');
+            } else {
+                body.classList.remove('dark-theme');
+            }
+        }
+        
+        // Инициализация темы
+        applyTheme();
+        tg.onEvent('themeChanged', applyTheme);
+        
+        // Начало игры
+        startButton.addEventListener('click', startGame);
+        playAgainButton.addEventListener('click', startGame);
+        
+        function startGame() {
+            // Сброс состояния игры
+            timeLeft = 30;
+            score = 0;
+            goldElementsCount = 0;
+            spawnInterval = 1000;
+            
+            // Обновление UI
+            timerElement.textContent = timeLeft;
+            scoreElement.textContent = score;
+            finalScoreElement.textContent = score;
+            
+            // Очистка игровой области
+            gameArea.innerHTML = '';
+            
+            // Переключение экранов
+            startScreen.style.display = 'none';
+            resultScreen.style.display = 'none';
+            gameScreen.style.display = 'flex';
+            
+            // Запуск таймера
+            clearInterval(gameTimer);
+            gameTimer = setInterval(updateTimer, 1000);
+            
+            // Запуск генерации элементов
+            clearInterval(gameInterval);
+            spawnElement();
+            gameInterval = setInterval(spawnElement, spawnInterval);
+        }
+        
+        // Обновление таймера
+        function updateTimer() {
+            timeLeft--;
+            timerElement.textContent = timeLeft;
+            
+            // Увеличиваем скорость появления элементов
+            if (timeLeft <= 20) spawnInterval = 800;
+            if (timeLeft <= 15) spawnInterval = 700;
+            if (timeLeft <= 10) spawnInterval = 600;
+            if (timeLeft <= 5) spawnInterval = 400;
+            
+            // Перезапускаем интервал с новой скоростью
+            if (timeLeft === 20 || timeLeft === 15 || timeLeft === 10 || timeLeft === 5) {
+                clearInterval(gameInterval);
+                gameInterval = setInterval(spawnElement, spawnInterval);
+            }
+            
+            // Конец игры
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+        
+        // Создание игрового элемента
+        function spawnElement() {
+            const element = document.createElement('div');
+            element.classList.add('element');
+            
+            // Определяем тип элемента
+            const elementTypes = ['coin', 'silver-coin', 'bill'];
+            const isGold = Math.random() < 0.05 && goldElementsCount < 3; // 5% шанс на золотой элемент, но не более 3 за игру
+            
+            if (isGold) {
+                element.classList.add('gold-bill');
+                goldElementsCount++;
+            } else {
+                const randomType = elementTypes[Math.floor(Math.random() * elementTypes.length)];
+                element.classList.add(randomType);
+            }
+            
+            // Добавляем символ рубля
+            const ruble = document.createElement('div');
+            ruble.textContent = '₽';
+            ruble.style.fontSize = element.classList.contains('gold-bill') ? '24px' : 
+                                  element.classList.contains('bill') ? '20px' : '24px';
+            ruble.style.fontWeight = 'bold';
+            element.appendChild(ruble);
+            
+            // Позиционирование
+            const maxX = gameArea.offsetWidth - 100;
+            const maxY = gameArea.offsetHeight - 100;
+            
+            const posX = Math.floor(Math.random() * maxX);
+            const posY = Math.floor(Math.random() * maxY);
+            
+            element.style.left = `${posX}px`;
+            element.style.top = `${posY}px`;
+            
+            // Обработка клика
+            element.addEventListener('click', () => {
+                // Анимация клика
+                element.style.animation = 'disappear 0.3s forwards';
+                
+                // Анимация вращения для монеток
+                if (element.classList.contains('coin') || element.classList.contains('silver-coin')) {
+                    element.style.animation = 'spin 0.5s ease-out, disappear 0.5s forwards';
+                }
+                
+                // Обновление счета
+                if (element.classList.contains('gold-bill')) {
+                    score += 50;
+                    
+                    // Показ предсказания
+                    const prediction = predictions[Math.floor(Math.random() * predictions.length)];
+                    showPrediction(prediction);
+                } else {
+                    score += 10;
+                }
+                
+                scoreElement.textContent = score;
+                
+                // Удаление элемента после анимации
+                setTimeout(() => {
+                    element.remove();
+                }, 500);
+            });
+            
+            // Автоматическое удаление через 1-1.5 секунды
+            const disappearTime = 1000 + Math.random() * 500;
+            setTimeout(() => {
+                if (element.parentNode) {
+                    element.style.animation = 'disappear 0.3s forwards';
+                    setTimeout(() => element.remove(), 300);
+                }
+            }, disappearTime);
+            
+            gameArea.appendChild(element);
+        }
+        
+        // Показ предсказания
+        function showPrediction(text) {
+            const predictionPopup = document.createElement('div');
+            predictionPopup.classList.add('prediction');
+            predictionPopup.textContent = text;
+            predictionPopup.style.position = 'absolute';
+            predictionPopup.style.top = '50%';
+            predictionPopup.style.left = '50%';
+            predictionPopup.style.transform = 'translate(-50%, -50%)';
+            predictionPopup.style.zIndex = '100';
+            predictionPopup.style.animation = 'appear 0.3s';
+            
+            gameArea.appendChild(predictionPopup);
+            
+            setTimeout(() => {
+                predictionPopup.style.animation = 'disappear 0.5s forwards';
+                setTimeout(() => predictionPopup.remove(), 500);
+            }, 2000);
+        }
+        
+        // Завершение игры
+        function endGame() {
+            clearInterval(gameTimer);
+            clearInterval(gameInterval);
+            
+            // Обновление финального счета
+            finalScoreElement.textContent = score;
+            
+            // Показ случайного предсказания
+            const finalPrediction = predictions[Math.floor(Math.random() * predictions.length)];
+            predictionElement.textContent = finalPrediction;
+            
+            // Переключение экранов
+            gameScreen.style.display = 'none';
+            resultScreen.style.display = 'flex';
+        }
+        
+        // Поделиться результатом
+        shareButton.addEventListener('click', () => {
+            const shareText = `Я набрал ${score} очков в игре "Предсказание от ВБ Банка"! Попробуй и ты!`;
+            
+            // Проверяем, доступна ли функция sharePopup в Telegram Web App
+            if (tg && tg.sharePopup) {
+                tg.sharePopup({
+                    title: "Предсказание от ВБ Банка",
+                    message: shareText,
+                    url: window.location.href
+                });
+            } else {
+                // Фоллбэк для обычных браузеров
+                if (navigator.share) {
+                    navigator.share({
+                        title: "Предсказание от ВБ Банка",
+                        text: shareText,
+                        url: window.location.href
+                    }).catch(console.error);
+                } else {
+                    // Копирование в буфер обмена
+                    navigator.clipboard.writeText(shareText + " " + window.location.href)
+                        .then(() => alert('Ссылка скопирована в буфер обмена!'))
+                        .catch(err => console.error('Ошибка копирования: ', err));
+                }
+            }
+        });
+        
+        // Адаптация к размеру экрана при загрузке
+        window.addEventListener('resize', () => {
+            // Обновляем размеры игровой области
+            gameArea.style.height = `${window.innerHeight - 150}px`;
+        });
+        
+        // Инициализация высоты игровой области
+        window.dispatchEvent(new Event('resize'));
+    </script>
+</body>
+</html>
