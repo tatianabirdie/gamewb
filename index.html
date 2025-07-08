@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Предсказание от ВБ Банка</title>
+    <title>Финансирование от ВБ Банка</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -170,6 +170,7 @@
             color: #8B4513;
             font-weight: bold;
             font-size: 24px;
+            animation: coin-pulse 2s infinite;
         }
 
         .preview-bill {
@@ -185,6 +186,7 @@
             color: white;
             font-weight: bold;
             font-size: 20px;
+            animation: bill-pulse 2s infinite;
         }
 
         .preview-gold-bill {
@@ -280,6 +282,7 @@
             color: #8B4513;
             font-weight: bold;
             font-size: 24px;
+            animation: coin-pulse 2s infinite;
         }
 
         .silver-coin {
@@ -294,6 +297,7 @@
             color: #333;
             font-weight: bold;
             font-size: 24px;
+            animation: coin-pulse 2s infinite;
         }
 
         .bill {
@@ -308,6 +312,7 @@
             color: white;
             font-weight: bold;
             font-size: 20px;
+            animation: bill-pulse 2s infinite;
         }
 
         .gold-bill {
@@ -399,6 +404,17 @@
             transform: translateY(-3px);
             box-shadow: 0 6px 16px rgba(138, 43, 226, 0.4);
         }
+        
+        .financing-promo {
+            margin-top: 25px;
+            font-size: 16px;
+            color: var(--primary);
+            font-weight: 600;
+            max-width: 300px;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            background: rgba(138, 43, 226, 0.05);
+        }
 
         /* Анимации */
         @keyframes appear {
@@ -432,6 +448,18 @@
                 transform: scale(1);
                 box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
             }
+        }
+        
+        @keyframes coin-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes bill-pulse {
+            0% { transform: scale(1); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+            50% { transform: scale(1.05); box-shadow: 0 6px 12px rgba(0,0,0,0.3); }
+            100% { transform: scale(1); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
         }
 
         @keyframes spin {
@@ -475,6 +503,28 @@
                 height: 40px;
                 font-size: 20px;
             }
+            
+            .elements-preview {
+                gap: 12px;
+            }
+            
+            .preview-coin {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+            
+            .preview-bill {
+                width: 65px;
+                height: 32px;
+                font-size: 16px;
+            }
+            
+            .preview-gold-bill {
+                width: 70px;
+                height: 38px;
+                font-size: 20px;
+            }
         }
     </style>
 </head>
@@ -482,7 +532,7 @@
     <div class="container">
         <!-- Шапка с брендингом -->
         <header>
-            <div class="brand">Предсказание от ВБ Банка</div>
+            <div class="brand">Финансирование от ВБ Банка</div>
             <div class="header-right">
                 <div class="financing-text">Финансирование от ВБ Финанс: узнайте, какая сумма доступна вам</div>
                 <a href="https://loans.wb.ru/" class="get-button" target="_blank">Получить</a>
@@ -496,7 +546,7 @@
                 Кликай на появляющиеся деньги, чтобы заработать очки.<br>
                 <span class="gold-highlight">Золотые монетки:</span> +10 очков<br>
                 <span class="green-highlight">Банкноты:</span> +10 очков<br>
-                <span class="gold-highlight">Золотые банкноты:</span> +50 очков + предсказание<br>
+                <span class="gold-highlight">Золотые банкноты:</span> +50 очков<br>
                 У тебя всего <span class="highlight">30 секунд</span>!
             </p>
             
@@ -541,6 +591,10 @@
                 <button class="action-button play-again" id="play-again">Играть снова</button>
                 <button class="action-button share" id="share-button">Поделиться</button>
             </div>
+            
+            <div class="financing-promo">
+                Воспользуйтесь финансированием от ВБ Финанс для роста вашего бизнеса
+            </div>
         </div>
     </div>
 
@@ -570,6 +624,7 @@
         let score = 0;
         let goldElementsCount = 0;
         let spawnInterval = 1000; // начальный интервал (1 элемент в секунду)
+        let collectedPredictions = [];
         
         // Предсказания
         const predictions = [
@@ -608,6 +663,7 @@
             score = 0;
             goldElementsCount = 0;
             spawnInterval = 1000;
+            collectedPredictions = [];
             
             // Обновление UI
             timerElement.textContent = timeLeft;
@@ -704,9 +760,9 @@
                 if (element.classList.contains('gold-bill')) {
                     score += 50;
                     
-                    // Показ предсказания
+                    // Запоминаем предсказание
                     const prediction = predictions[Math.floor(Math.random() * predictions.length)];
-                    showPrediction(prediction);
+                    collectedPredictions.push(prediction);
                 } else {
                     score += 10;
                 }
@@ -731,26 +787,6 @@
             gameArea.appendChild(element);
         }
         
-        // Показ предсказания
-        function showPrediction(text) {
-            const predictionPopup = document.createElement('div');
-            predictionPopup.classList.add('prediction');
-            predictionPopup.textContent = text;
-            predictionPopup.style.position = 'absolute';
-            predictionPopup.style.top = '50%';
-            predictionPopup.style.left = '50%';
-            predictionPopup.style.transform = 'translate(-50%, -50%)';
-            predictionPopup.style.zIndex = '100';
-            predictionPopup.style.animation = 'appear 0.3s';
-            
-            gameArea.appendChild(predictionPopup);
-            
-            setTimeout(() => {
-                predictionPopup.style.animation = 'disappear 0.5s forwards';
-                setTimeout(() => predictionPopup.remove(), 500);
-            }, 2000);
-        }
-        
         // Завершение игры
         function endGame() {
             clearInterval(gameTimer);
@@ -759,9 +795,13 @@
             // Обновление финального счета
             finalScoreElement.textContent = score;
             
-            // Показ случайного предсказания
-            const finalPrediction = predictions[Math.floor(Math.random() * predictions.length)];
-            predictionElement.textContent = finalPrediction;
+            // Показ предсказания (если есть)
+            if (collectedPredictions.length > 0) {
+                const randomIndex = Math.floor(Math.random() * collectedPredictions.length);
+                predictionElement.textContent = collectedPredictions[randomIndex];
+            } else {
+                predictionElement.textContent = "Соберите золотые банкноты, чтобы получить предсказание!";
+            }
             
             // Переключение экранов
             gameScreen.style.display = 'none';
@@ -770,12 +810,12 @@
         
         // Поделиться результатом
         shareButton.addEventListener('click', () => {
-            const shareText = `Я набрал ${score} очков в игре "Предсказание от ВБ Банка"! Попробуй и ты!`;
+            const shareText = `Я набрал ${score} очков в игре "Финансирование от ВБ Банка"! Попробуй и ты!`;
             
             // Проверяем, доступна ли функция sharePopup в Telegram Web App
             if (tg && tg.sharePopup) {
                 tg.sharePopup({
-                    title: "Предсказание от ВБ Банка",
+                    title: "Финансирование от ВБ Банка",
                     message: shareText,
                     url: window.location.href
                 });
@@ -783,7 +823,7 @@
                 // Фоллбэк для обычных браузеров
                 if (navigator.share) {
                     navigator.share({
-                        title: "Предсказание от ВБ Банка",
+                        title: "Финансирование от ВБ Банка",
                         text: shareText,
                         url: window.location.href
                     }).catch(console.error);
